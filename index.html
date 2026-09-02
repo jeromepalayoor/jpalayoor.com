@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Jerome Palayoor</title>
+        <link rel="stylesheet" href="styles.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap"
+            rel="stylesheet">
+    </head>
+    <body>
+        <header>
+            <h1>Jerome Palayoor</h1>
+            <a href="#contact" class="btn-primary">Contact</a>
+        </header>
+        <main>
+            <h2 class="projects-header">List of Projects</h2>
+            <section class="projects">
+                <article>
+                    <img src="mlfromscratch.png"
+                        alt="MNIST digit recognizer correctly classifying hand-drawn digits">
+                    <h3>ML From Scratch</h3>
+                    <p>A machine learning library built from scratch in
+                        Python.</p>
+                    <a href="https://jpalayoor.com/ml-from-scratch/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+                <article>
+                    <img src="moneytracker.png"
+                        alt="Money Tracker app image">
+                    <h3>Money Tracker</h3>
+                    <p>An Android finance app built with Java and Room.</p>
+                    <a href="https://moneytracker.jpalayoor.com/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+                <article>
+                    <img src="muscletracker.png"
+                        alt="Muscle Tracker app image">
+                    <h3>Muscle Tracker</h3>
+                    <p>An Android workout tracker built with Java and Room.</p>
+                    <a href="https://muscletracker.jpalayoor.com/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+                <article>
+                    <img src="tinyllm-coming-soon.png"
+                        alt="Coming soon image">
+                    <h3>TinyLLM V1</h3>
+                    <p>Creating a small language model from scratch V1</p>
+                    <a href="https://jpalayoor.com/tinyllm-v1/"
+                        class="btn-secondary is-disabled"
+                        aria-disabled="true">Learn More ➔</a>
+                </article>
+                <article>
+                    <img src="pythonprojects.png"
+                        alt="Python projects images">
+                    <h3>Python Projects</h3>
+                    <p>Various mini python projects done in free time</p>
+                    <a href="https://jpalayoor.com/python-projects/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+                <article>
+                    <img src="pygameprojects.png"
+                        alt="Pygame games images">
+                    <h3>Pygame Projects</h3>
+                    <p>Various mini python games in pygame done in free time</p>
+                    <a href="https://jpalayoor.com/pygame-projects/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+            </section>
+            <section class="contact" id="contact">
+                <h2>Contact Me</h2>
+                <div class="links">
+                    <a href="mailto:contact@jeromepalayoor.com"
+                        class="btn-secondary">Email</a>
+                    <a href="https://github.com/jeromepalayoor"
+                        class="btn-secondary">Github</a>
+                    <a href="https://www.linkedin.com/in/jeromepalayoor/"
+                        class="btn-secondary">LinkedIn</a>
+                    <a href="https://www.instagram.com/jeromepalayoor/"
+                        class="btn-secondary">Instagram</a>
+                </div>
+            </section>
+        </main>
+        <footer>
+            <p>© 2026 Jerome Palayoor</p>
+        </footer>
+        <div class="lightbox" id="lightbox">
+            <img src="" alt="" id="lightbox-img">
+        </div>
+        <script>
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+
+            document.querySelectorAll('.projects article img').forEach((img) => {
+                img.style.cursor = 'pointer';
+                img.addEventListener('click', () => {
+                    lightboxImg.src = img.src;
+                    lightboxImg.alt = img.alt;
+                    lightbox.classList.add('active');
+                });
+            });
+
+            lightbox.addEventListener('click', (event) => {
+            if (event.target === lightbox) {
+                lightbox.classList.remove('active');
+            }
+            });
+        </script>
+    </body>
+</html>
