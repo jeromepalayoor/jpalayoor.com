@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Pygame Projects - Jerome Palayoor</title>
+        <link rel="stylesheet" href="/styles.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap"
+            rel="stylesheet">
+    </head>
+    <body>
+        <header>
+            <h1>Jerome Palayoor</h1>
+            <a href="#contact" class="btn-primary">Contact</a>
+        </header>
+        <main>
+            <h2 class="projects-header">List of Pygame Projects</h2>
+            <section class="projects">
+                <article>
+                    <h3>Chess</h3>
+                    <p>Chess made with pygame</p>
+                    <a href="chess/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+                <article>
+                    <h3>Sudoku</h3>
+                    <p>Sudoku, playable in pygame</p>
+                    <a href="sudoku/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+                <article>
+                    <h3>Minesweeper Clone</h3>
+                    <p>A Minesweeper clone</p>
+                    <a href="minesweeper-clone/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+                <article>
+                    <h3>Maze Gen</h3>
+                    <p>Generates mazes using recursive backtracking and solves
+                        it</p>
+                    <a href="maze-gen/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+                <article>
+                    <h3>A* Pathfinding</h3>
+                    <p>A* pathfinding visualizer</p>
+                    <a href="a-star-pathfinding/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+                <article>
+                    <h3>Game of Life</h3>
+                    <p>A simulation of cellular automata</p>
+                    <a href="conways-game-of-life/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+                <article>
+                    <h3>Tetris</h3>
+                    <p>Tetris in pygame</p>
+                    <a href="tetris/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+                <article>
+                    <h3>Snake</h3>
+                    <p>Classic snake</p>
+                    <a href="snake/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+                <article>
+                    <h3>Flappy Birdie</h3>
+                    <p>Flappy Bird clone</p>
+                    <a href="flappy-birdie/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+                <article>
+                    <h3>Paint Program</h3>
+                    <p>A MS Paint clone</p>
+                    <a href="paint/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+                <article>
+                    <h3>Clock</h3>
+                    <p>Clock rendered in a seven segment display</p>
+                    <a href="seven-segment-display-clock/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+                <article>
+                    <h3>Bouncing Balls</h3>
+                    <p>Bounce many balls</p>
+                    <a href="bouncing-balls/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+                <article>
+                    <h3>Mouse Shooter</h3>
+                    <p>Move your mouse and try not to get hit by the balls</p>
+                    <a href="mouse-shooter/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+                <article>
+                    <h3>Tic-Tac-Toe Bot</h3>
+                    <p>Tic-tac-toe game against a simple bot</p>
+                    <a href="tic-tac-toe-bot/"
+                        class="btn-secondary">Learn More ➔</a>
+                </article>
+            </section>
+            <section class="contact" id="contact">
+                <h2>Contact Me</h2>
+                <div class="links">
+                    <a href="mailto:contact@jeromepalayoor.com"
+                        class="btn-secondary">Email</a>
+                    <a href="https://github.com/jeromepalayoor"
+                        class="btn-secondary">Github</a>
+                    <a href="https://www.linkedin.com/in/jeromepalayoor/"
+                        class="btn-secondary">LinkedIn</a>
+                    <a href="https://www.instagram.com/jeromepalayoor/"
+                        class="btn-secondary">Instagram</a>
+                </div>
+            </section>
+        </main>
+        <footer>
+            <p>© 2026 Jerome Palayoor</p>
+        </footer>
+        <div class="lightbox" id="lightbox">
+            <img src="" alt="" id="lightbox-img">
+        </div>
+        <script>
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+
+            document.querySelectorAll('.projects article img').forEach((img) => {
+                img.style.cursor = 'pointer';
+                img.addEventListener('click', () => {
+                    lightboxImg.src = img.src;
+                    lightboxImg.alt = img.alt;
+                    lightbox.classList.add('active');
+                });
+            });
+
+            lightbox.addEventListener('click', (event) => {
+            if (event.target === lightbox) {
+                lightbox.classList.remove('active');
+            }
+            });
+        </script>
+    </body>
+</html>

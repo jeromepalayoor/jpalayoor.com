@@ -110,6 +110,51 @@ main {
     padding: var(--space-4);
 }
 
+.project-hero {
+    background-color: var(--surface-800);
+    max-width: 1000px;
+    margin: var(--space-4) auto;
+    border: 2px solid var(--surface-600);
+    border-radius: var(--space-5);
+    padding: var(--space-5);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+.project-hero img {
+    max-width: 60%;
+    height: auto;
+    display: block;
+    border-radius: var(--space-5);
+    margin-bottom: var(--space-5);
+}
+
+.project-hero .herotext {
+    text-align: center;
+}
+
+.project-hero .intro {
+    color: var(--surface-100);
+    margin-bottom: var(--space-5);
+}
+
+.links {
+    display: flex;
+    justify-content: space-around;
+}
+
+.links a {
+    margin: var(--space-3);
+    text-align: center;
+}
+
+@media (max-width: 750px) {
+    .links {
+        flex-direction: column;
+    }
+}
+
 .projects-header {
     text-align: center;
     color: var(--surface-200);
@@ -144,12 +189,67 @@ main {
     color: var(--surface-50);
     font-size: var(--text-2xl);
     font-family: "Fraunces", serif;
+    text-align: center;
 }
 
 .projects article p {
     color: var(--surface-200);
     max-width: 80%;
     line-height: 1.6;
+}
+
+.projects article a.btn-secondary {
+    margin-top: auto;
+}
+
+.project-body {
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: var(--space-6) ;
+    background-color: var(--surface-800);
+    border: 1px solid var(--surface-600);
+    border-radius: var(--space-5);
+}
+
+.project-body h2 {
+    color: var(--surface-100);
+    font-family: "Fraunces", serif;
+}
+
+.project-body p {
+    color: var(--surface-200);
+    line-height: 1.6;
+    max-width: 70ch;
+}
+
+.project-body pre {
+    background-color: var(--surface-950);
+    border: 1px solid var(--surface-600);
+    border-radius: var(--space-3);
+    padding: var(--space-4);
+    overflow-x: auto;
+}
+
+.project-body code {
+    color: var(--surface-100);
+    font-family: monospace;
+}
+
+.project-body p code,
+.project-body li code {
+    background-color: var(--surface-950);
+    padding: 0.15em 0.4em;
+    border-radius: var(--space-1);
+    font-family: monospace;
+    font-size: 0.9em;
+    color: var(--surface-100);
+}
+
+.project-body img {
+    max-width: 100%;
+    border-radius: var(--space-5);
+    margin: var(--space-4) 0;
+    cursor: pointer;
 }
 
 .contact {
@@ -166,16 +266,6 @@ main {
 
 .contact h2 {
     color: var(--surface-100);
-    text-align: center;
-}
-
-.links {
-    display: flex;
-    justify-content: space-around;
-}
-
-.links a {
-    margin: var(--space-3);
     text-align: center;
 }
 
