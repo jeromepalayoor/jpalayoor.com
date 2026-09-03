@@ -123,7 +123,7 @@ main {
 }
 
 .project-hero img {
-    max-width: 60%;
+    max-width: 90%;
     height: auto;
     display: block;
     border-radius: var(--space-5);
@@ -132,6 +132,7 @@ main {
 
 .project-hero .herotext {
     text-align: center;
+    font-size: var(--text-lg);
 }
 
 .project-hero .intro {
@@ -238,18 +239,32 @@ main {
 .project-body p code,
 .project-body li code {
     background-color: var(--surface-950);
-    padding: 0.15em 0.4em;
-    border-radius: var(--space-1);
-    font-family: monospace;
-    font-size: 0.9em;
-    color: var(--surface-100);
+    padding: 0.2em 0.45em;
+    border-radius: 4px;
+    font-size: 1em;
+    color: var(--surface-300);
+    border: 1px solid var(--surface-600);
 }
 
 .project-body img {
     max-width: 100%;
+    display: block;
     border-radius: var(--space-5);
-    margin: var(--space-4) 0;
+    margin: var(--space-4) auto;
     cursor: pointer;
+}
+
+.project-body .inline-link {
+    color: var(--surface-50);
+}
+
+.project-body .output-label {
+    font-weight: 700;
+    text-transform: uppercase;
+    font-size: var(--text-lg);
+    letter-spacing: 0.05em;
+    color: var(--surface-400);
+    margin-bottom: var(--space-2);
 }
 
 .contact {
