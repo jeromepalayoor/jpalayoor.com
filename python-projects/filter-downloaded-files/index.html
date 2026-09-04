@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Downloads Organizer - Jerome Palayoor</title>
+        <link rel="stylesheet" href="/styles.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    </head>
+    <body>
+        <header>
+            <h1>Jerome Palayoor</h1>
+            <a href="#contact" class="btn-primary">Contact</a>
+        </header>
+        <main>
+            <section class="project-hero">
+                <div class="herotext">
+                    <p class="intro">A small background script that watches a folder and automatically sorts new downloads into subfolders by file type.</p>
+                    <div class="links">
+                        <a
+                            href="https://github.com/jeromepalayoor/filter-downloaded-files"
+                            class="btn-primary">View on GitHub ➔</a>
+                    </div>
+                </div>
+            </section>
+            <article class="project-body">
+            <h2>How it works</h2>
+            <p>The script uses the <code>watchdog</code> library to watch a folder in the background and react whenever a new file shows up.</p>
+            <pre><code class="language-python">event_handler = Handler()
+observer = watchdog.observers.Observer()
+observer.schedule(event_handler, watchpath, recursive=False)
+observer.start()
+observer.join()</code></pre>
+            <p><code>observer.schedule</code> tells watchdog which folder to watch, <code>recursive=False</code> means it only watches that top-level folder, not subfolders inside it. <code>observer.join()</code> keeps the script alive and listening indefinitely.</p>
+
+            <h2>Handling a new file</h2>
+            <p>Every time a new file appears in the watched folder, <code>on_created</code> fires.</p>
+            <pre><code class="language-python">def on_created(self,event):
+    if not event.is_directory:
+        time.sleep(10)
+        try:
+            endpoint = event.src_path.rindex('.')
+            end = event.src_path[endpoint+1:]
+            namepoint = event.src_path.rindex('\\')
+            name = event.src_path[namepoint+1:]
+            path = watchpath + '\\folders\\' + end + ' files\\'
+            if not os.path.exists(path):
+                os.makedirs(path)
+            shutil.move(event.src_path,path + name)
+        except:
+            pass</code></pre>
+            <p>The <code>time.sleep(10)</code> matters more than it looks. Browsers write a file to disk while it's downloading, and a "created" event can fire before the download is actually finished. Waiting 10 seconds gives the download time to complete before the script tries to move a file that's still being written to.</p>
+            <p>From there it's string slicing: find the last <code>.</code> to get the extension, find the last <code>\</code> to get the filename, then build a destination path like <code>Downloads\folders\pdf files\</code> and move the file there, creating the folder first if it doesn't exist yet.</p>
+
+            <h2>Running in the background</h2>
+            <p>The file extension is <code>.pyw</code> instead of <code>.py</code>, that runs the script without opening a console window. Combined with adding it to Windows startup, it just runs quietly in the background from boot, sorting downloads as they come in without needing to be manually started.</p>
+        </article>
+            <section class="contact" id="contact">
+                <h2>Contact Me</h2>
+                <div class="links">
+                    <a href="mailto:contact@jeromepalayoor.com"
+                        class="btn-secondary">Email</a>
+                    <a href="https://github.com/jeromepalayoor"
+                        class="btn-secondary">Github</a>
+                    <a href="https://www.linkedin.com/in/jeromepalayoor/"
+                        class="btn-secondary">LinkedIn</a>
+                    <a href="https://www.instagram.com/jeromepalayoor/"
+                        class="btn-secondary">Instagram</a>
+                </div>
+            </section>
+        </main>
+        <footer>
+            <p>© 2026 Jerome Palayoor</p>
+            <div class="footer-links">
+                <a href="https://jeromepalayoor.com">Portfolio</a>
+                <a href="https://jpalayoor.com">All Projects</a>
+            </div>
+        </footer>
+        <div class="lightbox" id="lightbox">
+            <img src="" alt="" id="lightbox-img">
+        </div>
+        <script>
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+
+            document.querySelectorAll('img').forEach((img) => {
+                img.style.cursor = 'pointer';
+                img.addEventListener('click', () => {
+                    lightboxImg.src = img.src;
+                    lightboxImg.alt = img.alt;
+                    lightbox.classList.add('active');
+                });
+            });
+
+            lightbox.addEventListener('click', (event) => {
+            if (event.target === lightbox) {
+                lightbox.classList.remove('active');
+            }
+            });
+        </script>
+    </body>
+</html>
