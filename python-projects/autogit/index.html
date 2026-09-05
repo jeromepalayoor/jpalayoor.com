@@ -3,7 +3,7 @@
     <head>
         <meta charset="UTF-8">
         <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>ML from scratch - Jerome Palayoor</title>
+        <title>AutoGit - Jerome Palayoor</title>
         <link rel="stylesheet" href="/styles.css">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -24,496 +24,54 @@
         </header>
         <main>
             <section class="project-hero">
-                <img src="mlfromscratch.png"
-                    alt="MNIST digit recognizer correctly classifying hand-drawn digits">
                 <div class="herotext">
-                    <p class="intro">A machine learning library built from
-                        scratch in Python and NumPy, no PyTorch or
-                        TensorFlow.</p>
+                    <h2 class="project-title">AutoGit</h2>
+                    <p class="intro">A tiny CLI tool that adds, commits, and
+                        pushes in one command, for quick saves without typing
+                        the full git workflow.</p>
                     <div class="links">
                         <a
-                            href="https://github.com/jeromepalayoor/ml-from-scratch"
+                            href="https://github.com/jeromepalayoor/python-projects/tree/main/autogit/"
                             class="btn-primary">View on GitHub ➔</a>
                     </div>
                 </div>
             </section>
             <article class="project-body">
-                <h2>Why build it from scratch</h2>
-                <p>Some of my other projects use existing libraries. I could
-                    call <code>model.fit()</code> in Pytorch without being able
-                    to explain what backpropagation was actually computing
-                    underneath. This project was the opposite: doing the basics
-                    by hand, so "gradient descent" stops being a phrase I use
-                    and starts being something I could derive on a
-                    whiteboard.</p>
+                <h2>How it works</h2>
+                <p>The whole script is just eight lines. It calls out to git
+                    directly, the same commands that would be typed by hand,
+                    just chained together.</p>
+                <pre><code class="language-python">import subprocess
+import sys
+subprocess.call(["git", "add", "."])
+if len(sys.argv) > 1:
+    subprocess.call(["git", "commit", "-m", f"{sys.argv[1]}"])
+else:
+    subprocess.call(["git", "commit", "-m", "'updated stuff'"])
+subprocess.call(["git", "push", "origin", "main"])</code></pre>
+                <p><code>sys.argv</code> is how it reads whatever you typed
+                    after the command. If you run <code>autogit
+                        "fixed the bug"</code>, that string becomes the commit
+                    message. If you just run <code>autogit</code> with nothing
+                    after it, it falls back to a generic
+                    <code>'updated stuff'</code> message instead.</p>
 
-                <h2>The forward pass</h2>
-                <p>Every layer follows the same basic shape: take the input,
-                    multiply the weights and add the bias.</p>
-                <pre><code class="language-python">def forward(self, X):
-    Z = np.dot(X, self.W) + self.b
-    self.X = X
-    return Z</code></pre>
-                <p>The one detail worth noticing is <code>self.X = X</code> The
-                    layer caches its own input during the forward pass. The
-                    backward pass needs it later to compute how much each weight
-                    contributed to the final error.</p>
-
-                <h2>Weight initialization</h2>
-                <p>Weights aren't just random. Look at how
-                    <code>DenseLayer</code> sets them up:</p>
-                <pre><code class="language-python">def __init__(self, input_dim, output_dim):
-    # initialise weights and biases
-    self.W = np.random.randn(input_dim, output_dim) * np.sqrt(2.0 / input_dim)
-    self.b = np.zeros((1, output_dim))
-    self.v_W = np.zeros(self.W.shape)
-    self.v_b = np.zeros(self.b.shape)</code></pre>
-                <p>The <code>* np.sqrt(2.0 / input_dim)</code> scaling is He
-                    initialization. Random weights with the wrong scale cause
-                    the signal passing through a deep network to shrink toward
-                    zero or blow up as it moves through each layer, layers stop
-                    learning either way. Scaling by the size of the input keeps
-                    the variance of activations roughly stable from layer to
-                    layer at the start of training. It's paired with ReLU
-                    specifically, since that's what the derivation assumes.</p>
-                <p><code>v_W</code> and <code>v_b</code> aren't used yet at this
-                    point, they're set up here for momentum, which comes in
-                    later during the parameter update step.</p>
-
-                <h2>Activation functions</h2>
-                <p>A stack of dense layers with nothing in between them
-                    collapses into a single linear function, no matter how many
-                    layers you add. Activations are what let the network learn
-                    anything non-linear. This library has three.</p>
-                <p><code>ReLULayer</code> is the default for hidden layers.
-                    Simple and easy to compute.</p>
-                <pre><code class="language-python">class ReLULayer:
-    def forward(self, Z):
-        # relu func is 0 if x <= 0 or x if x > 0
-        self.Z = Z
-        return np.maximum(Z, 0)
-    
-    def backward(self, dA):
-        # the derivative of relu 0 if x <= 0 or 1 if x > 0
-        return dA * (self.Z > 0)</code></pre>
-                <p><code>SoftmaxLayer</code> is for multi-class output, it turns
-                    raw scores into a probability distribution that sums to 1
-                    across all classes. This is what MNIST uses on its final
-                    layer, one probability per digit.</p>
-                <pre><code class="language-python">class SoftmaxLayer:
-    def forward(self, Z):
-        # softmax is usually output layer
-        # shift z to keep within bounds
-        shift_Z = Z - np.max(Z, axis=-1, keepdims=True)
-        exps = np.exp(shift_Z)
-        return exps / np.sum(exps, axis=-1, keepdims=True)
-    
-    def backward(self, dA):
-        # the loss gradient goes through softmax without effect
-        return dA</code></pre>
-                <p>The <code>shift_Z</code> line isn't part of the actual math,
-                    it just subtracts the max value before exponentiating so
-                    large scores don't overflow. The backward pass looks like it
-                    does nothing because it does, when softmax is paired with
-                    cross entropy loss the gradient math simplifies and the
-                    derivative cancels out cleanly, so the loss function handles
-                    it instead.</p>
-                <p><code>SigmoidLayer</code> is for binary output, a single
-                    probability between 0 and 1. This is what logistic
-                    regression uses.</p>
-                <pre><code class="language-python">class SigmoidLayer:
-    # basic sigmoid function output is between 0 and 1
-    def sigmoid(self, x):
-        return 1 / (1 + np.exp(-x))
-
-    def forward(self, x):
-        self.x = x
-        return self.sigmoid(x)
-    
-    def backward(self, loss_gradient):
-        # calculate derivative
-        return self.sigmoid(self.x) * (1 - self.sigmoid(self.x)) * loss_gradient</code></pre>
-
-                <h2>The backward pass</h2>
-                <p>Each layer only needs to know one thing: how much did my
-                    output affect the loss? That's the incoming gradient,
-                    <code>dZ</code>. From there, the layer computes its own
-                    parameter gradients and passes the new gradient backward to
-                    whichever layer came before it.</p>
-                <pre><code class="language-python">def backward(self, dZ):
-    dW = np.dot(self.X.T, dZ)
-    db = np.sum(dZ, axis=0, keepdims=True)
-    dX = np.dot(dZ, self.W.T)
-    self.dW = dW
-    self.db = db
-    return dX</code></pre>
-                <p>Chained across every layer, this is backpropagation. No
-                    autograd, no magic, just the chain rule applied one layer at
-                    a time.</p>
-
-                <h2>Loss functions</h2>
-                <p>A loss function measures how wrong a prediction is, and its
-                    <code>backward()</code> method is where the gradient chain
-                    actually starts. This library has three, one per problem
-                    type.</p>
-                <p><code>CrossEntropyLoss</code> pairs with softmax for
-                    multi-class classification.</p>
-                <pre><code class="language-python">class CrossEntropyLoss:
-    def forward(self, y_pred, y_true):
-        # calculate the error between the predictions and true targets
-        self.y_pred = y_pred
-        self.y_true = y_true
-        loss = -np.sum(y_true * np.log(y_pred + 1e-15)) / y_pred.shape[0]
-        return loss
-    
-    def backward(self):
-        # calculate loss gradient
-        return (self.y_pred - self.y_true) / self.y_pred.shape[0]</code></pre>
-                <p>The <code>+ 1e-15</code> in the forward pass stops
-                    <code>log(0)</code> from happening, which would return
-                    negative infinity and break training.</p>
-                <p><code>BCELoss</code> is binary cross entropy, for binary
-                    classification, pairs with sigmoid.</p>
-                <pre><code class="language-python">class BCELoss:
-    def forward(self, y_pred, y_true):
-        self.y_pred = np.clip(y_pred, 1e-15, 1 - 1e-15)
-        self.y_true = y_true
-        return -np.mean(self.y_true * np.log(self.y_pred) + (1 - self.y_true) * np.log(1 - self.y_pred))
-
-    def backward(self):
-        return (1 / self.y_pred.shape[0]) * (self.y_pred - self.y_true) / (self.y_pred * (1 - self.y_pred) + 1e-15)</code></pre>
-                <p><code>MSELoss</code> is mean squared error, for regression,
-                    predicting a number instead of a class.</p>
-                <pre><code class="language-python">class MSELoss:
-    def forward(self, y_pred, y_true):
-        self.y_pred = y_pred
-        self.y_true = y_true
-        return np.mean((y_pred - y_true) ** 2)
-        
-    def backward(self):
-        N = self.y_pred.shape[0]
-        return (2 / N) * (self.y_pred - self.y_true)</code></pre>
-
-                <h2>Putting it together</h2>
-                <p>The <code>NeuralNetwork</code> class just chains layers
-                    together. Forward runs them in order, backward runs them in
-                    reverse.</p>
-                <pre><code class="language-python">class NeuralNetwork:
-    def __init__(self, layers):
-        self.layers = layers
-
-    def forward(self, X):
-        # forward propagation through all layers
-        for layer in self.layers:
-            X = layer.forward(X)
-        return X
-    
-    def backward(self, loss_gradient):
-        # backward propagation using chain rule
-        for layer in self.layers[::-1]:
-            loss_gradient = layer.backward(loss_gradient)</code></pre>
-                <p><code>update_params</code> is where the weights actually
-                    change, using momentum instead of a plain gradient step.</p>
-                <pre><code class="language-python">def update_params(self, lr):
-    # update weights and biases using learning rate
-    for layer in self.layers:
-        # check if layer is a hidden layer and not activation layer
-        if hasattr(layer, 'W'):
-            # momentum optization
-            layer.v_W = beta * layer.v_W + (1 - beta) * layer.dW
-            layer.W -= lr * layer.v_W
-            layer.v_b = beta * layer.v_b + (1 - beta) * layer.db
-            layer.b -= lr * layer.v_b</code></pre>
-                <p><code>hasattr(layer, 'W')</code> is how it skips activation
-                    layers, they don't have weights to update. <code>v_W</code>
-                    and <code>v_b</code> are running averages of past gradients,
-                    <code>beta</code> (set to 0.9) controls how much of the past
-                    sticks around. Instead of only reacting to the current
-                    batch's gradient, the update carries some momentum from
-                    previous steps, which smooths out noisy updates and speeds
-                    up convergence.</p>
-
-                <h2>Decision trees</h2>
-                <p>A different approach to the same problem, no gradients here.
-                    A decision tree repeatedly splits the data to make each
-                    resulting group as "pure" as possible, one class
-                    dominating.</p>
-                <p>Gini impurity measures how mixed a group is. 0 means every
-                    sample in the group is the same class.</p>
-                <pre><code class="language-python">def calculate_gini(y):
-    if len(y) == 0:
-        return 0
-    
-    length = len(y)
-    classes = np.unique(y, return_counts=True)
-
-    return 1 - np.sum(np.square(classes[1] / length))</code></pre>
-                <p>Information gain is how much a split reduces that impurity,
-                    comparing the parent group's Gini to the weighted Gini of
-                    the two resulting children.</p>
-                <pre><code class="language-python">def calculate_information_gain(parent, left, right):
-    left_w = len(left) / len(parent)
-    right_w = len(right) / len(parent)
-
-    return calculate_gini(parent) - left_w * calculate_gini(left) - right_w * calculate_gini(right)</code></pre>
-                <p>Finding the best split means brute-forcing every feature and
-                    every possible threshold, keeping whichever gives the
-                    highest gain.</p>
-                <pre><code class="language-python">def find_best_split(X, y):
-    best_gain = -1
-    split_idx, split_thresh = None, None
-    
-    n_features = X.shape[1]
-    
-    for feat_idx in range(n_features):
-        X_column = X[:, feat_idx]
-        thresholds = np.unique(X_column)
-
-        for tresh in thresholds:
-            mask = X_column <= tresh
-            y_left = y[mask]
-            y_right = y[~mask]
-            gain = calculate_information_gain(y, y_left, y_right)
-            if gain > best_gain:
-                best_gain = gain
-                split_idx = feat_idx
-                split_thresh = tresh
-
-    return split_idx, split_thresh, best_gain</code></pre>
-                <p>The tree builds itself recursively, splitting each group
-                    again and again until it hits a stopping condition, a pure
-                    group, too few samples left, or max depth reached.</p>
-                <pre><code class="language-python">def _build_tree(self, X, y, depth):
-    n_samples, n_features = X.shape
-    unique_classes = np.unique(y)
-
-    if len(unique_classes) == 1 or n_samples < self.min_samples_split or depth >= self.max_depth:
-        leaf_value = np.bincount(y).argmax()
-        return Node(value=leaf_value)
-
-    feat_idx, thresh, gain = find_best_split(X, y)
-
-    if gain <= 0 or feat_idx is None:
-        leaf_value = np.bincount(y).argmax()
-        return Node(value=leaf_value)
-
-    mask = X[:, feat_idx] <= thresh
-    
-    left_child = self._build_tree(X[mask], y[mask], depth + 1)
-    right_child = self._build_tree(X[~mask], y[~mask], depth + 1)
-
-    return Node(feature=feat_idx, threshold=thresh, left=left_child, right=right_child)</code></pre>
-
-                <h2>Random forest</h2>
-                <p>One decision tree overfits easily. A random forest trains
-                    many trees, each on a random bootstrapped sample of the
-                    data, then predicts by majority vote across all of them.</p>
-                <pre><code class="language-python">def get_bootstrap_samples(X, y):
-    n_samples = X.shape[0]
-    indices = np.random.choice(n_samples, size=n_samples, replace=True)
-    return X[indices], y[indices]
-
-class RandomForestClassifier:
-    def __init__(self, n_trees=10, max_depth=10, min_samples_split=2):
-        self.n_trees = n_trees
-        self.max_depth = max_depth
-        self.min_samples_split = min_samples_split
-        self.trees = []
-
-    def fit(self, X, y):
-        self.trees = []
-        for _ in range(self.n_trees):
-            X_sample, y_sample = get_bootstrap_samples(X, y)
-            new_tree = DecisionTree(max_depth=self.max_depth, min_samples_split=self.min_samples_split)
-            new_tree.fit(X_sample, y_sample)
-            self.trees.append(new_tree)
-
-    def predict(self, X):
-        y_pred = np.array([tree.predict(X) for tree in self.trees])
-        y_pred = np.swapaxes(y_pred, 0, 1)
-        return np.array([np.bincount(row).argmax() for row in y_pred])</code></pre>
-                <p><code>get_bootstrap_samples</code> samples with replacement,
-                    so each tree sees a slightly different version of the
-                    dataset. Different trees end up making different mistakes,
-                    and averaging their votes cancels a lot of that out.</p>
-
-                <h2>Example: linear regression</h2>
-                <p>Linear regression turns out to be a single dense layer with
-                    no activation and no output squashing, just raw numbers in,
-                    raw numbers out. This one predicts house prices from square
-                    footage, bedrooms, lot size, and a few other features, using
-                    the <a
-                        href="https://www.kaggle.com/datasets/prokshitha/home-value-insights"
-                        class="inline-link" target="_blank"
-                        rel="noopener noreferrer">House Price Prediction
-                        Dataset</a> from Kaggle.</p>
-                <pre><code class="language-python"># linear regression is 1 layer neural network without any activation
-linear_regression = NeuralNetwork([
-    DenseLayer(7, 1)
-])
-
-loss_fn = MSELoss()</code></pre>
-                <p>Features and target both get scaled before training, features
-                    to zero mean and unit variance, price divided down to a
-                    smaller range, gradient descent converges a lot more
-                    reliably when the numbers aren't in the hundreds of
-                    thousands.</p>
-                <p>The training loop is the same shape every example in this
-                    project uses: shuffle, split into batches, forward, compute
-                    loss, backward, update.</p>
-                <pre><code class="language-python">for epoch in range(1, epochs+1):
-    indices = np.arange(X_train.shape[0])
-    np.random.shuffle(indices)
-
-    total_loss = 0
-    num_batches = X_train.shape[0] / batch_size
-
-    for i in range(0, X_train.shape[0], batch_size):
-        batch_indices = indices[i:i+batch_size]
-        x_batch = X_train[batch_indices]
-        y_batch = y_train[batch_indices]
-
-        y_pred = linear_regression.forward(x_batch)
-
-        total_loss += loss_fn.forward(y_pred, y_batch)
-        loss_gradient = loss_fn.backward()
-
-        linear_regression.backward(loss_gradient)
-        linear_regression.update_params(lr)</code></pre>
-                <p class="output-label">Output:</p>
-                <pre><code class="language-python">Test Mean Absolute Error: $8,287.82
-Test R² Score: 0.9982</code></pre>
-                <p>The model is trained on 80% of the data and evaluated on the
-                    remaining 20% it never saw during training, so this reflects
-                    genuine predictive performance rather than memorization. On
-                    the held-out test set, it explains 99.82% of the variance in
-                    house price (R² = 0.9982), with predictions off by an
-                    average of $8,287, which suggests the model found a real
-                    underlying pattern rather than overfitting to noise.</p>
-
-                <h2>Example: logistic regression</h2>
-                <p>One dense layer plus a sigmoid, trained with BCE loss instead
-                    of MSE, and that's the same code turned into a binary
-                    classifier. This one's trained on a tiny toy dataset, ten 2D
-                    points split into two classes.</p>
-                <pre><code class="language-python">logistic_regression = NeuralNetwork([
-    DenseLayer(2, 1),
-    SigmoidLayer()
-])
-
-loss_fn = BCELoss()</code></pre>
-                <p>After training, it predicts on a new point that wasn't in the
-                    training data:</p>
-                <pre><code class="language-python"># 9h study 8h sleep
-raw_student = np.array([[9.0, 8.0]])
-
-X_mean = np.mean(X_binary, axis=0)
-X_std = np.std(X_binary, axis=0)
-scaled_student = (raw_student - X_mean) / X_std
-
-prediction = logistic_regression.forward(scaled_student)
-
-print(f"Passing Probability: {prediction[0][0] * 100:.2f}%")</code></pre>
-                <p class="output-label">Output:</p>
-                <pre><code class="language-python">Passing Probability: 99.17%</code></pre>
-                <p>With this dataset, more study hours and more sleep both push
-                    the prediction toward "pass," and 9 hours studied plus a
-                    full night's sleep lands solidly in that territory.</p>
-
-                <h2>Example: diabetes classifier</h2>
-                <p>The random forest, tested on something real: the <a
-                        href="https://raw.githubusercontent.com/jbrownlee/Datasets/master/pima-indians-diabetes.data.csv"
-                        class="inline-link" target="_blank"
-                        rel="noopener noreferrer">Pima Indians Diabetes
-                        dataset</a>, predicting diagnosis from features like
-                    glucose, blood pressure, and BMI.</p>
-                <pre><code class="language-python">forest = RandomForestClassifier(n_trees=10, max_depth=5, min_samples_split=5)
-forest.fit(X_train, y_train)
-
-predictions = forest.predict(X_test)
-accuracy = np.mean(predictions == y_test) * 100
-print(f"Random Forest Test Accuracy: {accuracy:.2f}%")</code></pre>
-                <p><code>n_trees=10</code> means ten trees vote on each
-                    prediction, averaging out any single tree's mistakes.
-                    <code>max_depth=5</code> and
-                    <code>min_samples_split=5</code> both keep individual trees
-                    shallow and simple, stopping them from carving the data into
-                    tiny, overfit groups.</p>
-                <p class="output-label">Output:</p>
-                <pre><code class="language-python">Random Forest Test Accuracy: 78.57%</code></pre>
-                <p>78.57% isn't a perfect score, but it's a good result for a
-                    medical dataset like this since diabetes risk depends on a
-                    lot of real world factors that this dataset doesn't capture
-                    (diet, family history, activity level), so there's a ceiling
-                    on how accurate any model can get from eight features
-                    alone.</p>
-
-                <h2>Example: MNIST digit classification</h2>
-                <p>The biggest example in the project, and the one behind the
-                    interactive demo. A neural network trained to recognize
-                    handwritten digits</p>
-                <pre><code class="language-python">nn = NeuralNetwork([
-    DenseLayer(input_dim=784, output_dim=512),
-    ReLULayer(),
-    DenseLayer(input_dim=512, output_dim=10),
-    SoftmaxLayer()
-])
-
-loss_fn = CrossEntropyLoss()</code></pre>
-                <p>784 inputs is a flattened 28x28 pixel image, 10 outputs is
-                    one probability per digit. Before training, every image gets
-                    randomly rotated, zoomed, and shifted:</p>
-                <pre><code class="language-python">def augment_image(image_784):
-    img_2d = image_784.reshape(28, 28)
-    scale_factor = np.random.uniform(0.75, 1.20)
-    zoomed_img = zoom(img_2d, scale_factor, order=1)
-    h, w = zoomed_img.shape
-    if scale_factor < 1.0:
-        pad_y = (28 - h) // 2
-        pad_x = (28 - w) // 2
-        img_2d = np.zeros((28, 28))
-        img_2d[pad_y:pad_y+h, pad_x:pad_x+w] = zoomed_img
-    else:
-        start_y = (h - 28) // 2
-        start_x = (w - 28) // 2
-        img_2d = zoomed_img[start_y:start_y+28, start_x:start_x+28]
-    random_angle = np.random.uniform(-15, 15)
-    img_2d = rotate(img_2d, random_angle, reshape=False, order=1)
-    random_shift_x = np.random.uniform(-2, 2)
-    random_shift_y = np.random.uniform(-2, 2)
-    img_2d = shift(img_2d, shift=[random_shift_y, random_shift_x], order=1)
-    return img_2d.reshape(784)</code></pre>
-                <p>Real handwriting isn't perfectly centered or a consistent
-                    size, augmenting the training data this way makes the model
-                    more robust to that instead of overfitting to the exact
-                    positioning of the original MNIST images.</p>
-                <p class="output-label">Output:</p>
-                <pre><code class="language-python">Final Test Accuracy: 94.72%</code></pre>
-                <p>After 20 epochs of training on augmented data, the model
-                    reaches 94.72% accuracy on the test data. That's without any
-                    convolutional layers, just dense layers and augmentation
-                    doing the work of generalizing to messier, real-world
-                    handwriting.</p>
-
-                <h2>The interactive demo</h2>
-                <p>The most satisfying part of this project to actually use: a
-                    pygame window where you draw a digit by hand and watch a
-                    neural network classify it in real time. Every mouse
-                    movement redraws the canvas, downsamples it to MNIST's
-                    native 28×28 format, and runs it through the trained
-                    model.</p>
-                <pre><code class="language-python">def get_nn_prediction(high_res_surface):
-    low_res_surface = pygame.transform.smoothscale(high_res_surface, (28, 28))
-    rgb_pixels = pygame.surfarray.pixels3d(low_res_surface)
-    gray_pixels = rgb_pixels[:, :, 0].T
-    img_flattened = gray_pixels.astype(np.float32).reshape(1, 784) / 255.0
-    pred_probabilities = nn.forward(img_flattened)
-    return pred_probabilities[0]</code></pre>
-                <img src="mnist.gif"
-                    alt="MNIST visualiser showing a hand-drawn digits being correctly classified in real time as it's drawn">
+                <h2>Turning it into a real command</h2>
+                <p>Running a Python script normally means typing <code>python
+                        autogit.py</code> every time. Packaging it with
+                    PyInstaller turns it into a standalone <code>.exe</code>,
+                    and dropping that into a folder that's on your system's PATH
+                    means you can just type <code>autogit</code> from any
+                    terminal, in any folder, like it's a real installed
+                    command.</p>
+                <pre><code class="language-python">pip install pyinstaller
+python -m PyInstaller --onefile --windowed --icon=image.ico autogit.py</code></pre>
+                <p><code>--onefile</code> bundles everything into a single .exe
+                    instead of a folder of dependencies, <code>--windowed</code>
+                    stops a console window from popping up when it runs.</p>
                 <div class="links">
                     <a
-                        href="https://github.com/jeromepalayoor/ml-from-scratch"
+                        href="https://github.com/jeromepalayoor/python-projects/tree/main/autogit/"
                         class="btn-primary">View on GitHub ➔</a>
                 </div>
             </article>

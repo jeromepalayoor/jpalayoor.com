@@ -130,6 +130,14 @@ main {
     margin-bottom: var(--space-5);
 }
 
+.project-hero .project-title {
+    color: var(--surface-50);
+    font-family: "Fraunces", serif;
+    font-size: var(--text-3xl);
+    text-align: center;
+    margin-bottom: var(--space-3);
+}
+
 .project-hero .herotext {
     text-align: center;
     font-size: var(--text-lg);
