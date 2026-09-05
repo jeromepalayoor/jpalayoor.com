@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Chess - Jerome Palayoor</title>
+        <link rel="stylesheet" href="/styles.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    </head>
+    <body>
+        <header>
+            <h1>Jerome Palayoor</h1>
+            <a href="#contact" class="btn-primary">Contact</a>
+        </header>
+        <main>
+            <section class="project-hero">
+                <img src="chessgameplay.gif"
+                    alt="A short sequence of chess moves, including a capture and the piece slide animation">
+                <div class="herotext">
+                    <h2 class="project-title">Chess</h2>
+                    <p class="intro">A chess game built in pygame, where every
+                        piece calculates its own legal moves and animates
+                        smoothly to its next position.</p>
+                    <div class="links">
+                        <a
+                            href="https://github.com/jeromepalayoor/pygame-projects/tree/main/chess"
+                            class="btn-primary">View on GitHub ➔</a>
+                    </div>
+                </div>
+            </section>
+            <article class="project-body">
+                <h2>Every piece is its own class</h2>
+                <p>There's no shared "chess engine" computing legal moves
+                    centrally, each piece type (Pawn, Rook, Bishop, Knight,
+                    Queen, King) is its own class that figures out its own valid
+                    moves every frame, by scanning the full list of pieces on
+                    the board.</p>
+                <img src="chess-start.png"
+                    alt="The chess board in its starting position">
+
+                <h2>Sliding pieces: Rooks, Bishops, and the Queen</h2>
+                <p>Rooks move in straight lines, Bishops move diagonally, and
+                    the Queen just combines both. Each direction is checked
+                    independently by walking outward one square at a time until
+                    it hits the edge of the board or another piece.</p>
+                <pre><code class="language-python">for i in range(1,9):
+    if not self.tf:
+        if self.y - i == -1:
+            self.t = i
+            self.tf = True
+            break
+        for piece in pieces:
+            if piece.y == self.y - i and self.x == piece.x:
+                self.t = i
+                if piece.c != self.c:
+                    self.tcap = i
+                self.tf = True
+                break</code></pre>
+                <p>This is the "top" direction check for a Rook. It counts
+                    outward until it either falls off the board (<code>self.y -
+                        i == -1</code>) or bumps into another piece, at which
+                    point it stops and records whether that piece was an enemy
+                    worth capturing (<code>piece.c != self.c</code>).</p>
+                <img src="chess-selected.png"
+                    alt="A selected Bishop showing its legal moves as yellow dots and a capturable pawn circled in yellow">
+                <p>The Bishop does the same thing along diagonals, and the Queen
+                    just runs both the Rook's four directions and the Bishop's
+                    four diagonals.</p>
+
+                <h2>Fixed position pieces: Knights and the King</h2>
+                <p>Knights and Kings don't need to scan outward, they only ever
+                    consider a small fixed set of offset squares.</p>
+                <pre><code class="language-python">if piece.x == self.x-1 and piece.y == self.y-2:
+    self.tl = False
+    if piece.c != self.c:
+        self.tlcap = True</code></pre>
+                <p>Each of the Knight's 8 possible L shaped jumps is just
+                    checked directly against the board, is that square empty,
+                    occupied by a friendly piece, or capturable. The King works
+                    almost identically, just with its 8 adjacent squares instead
+                    of L shapes.</p>
+
+                <h2>Pawns are the odd one out</h2>
+                <p>Pawns move differently depending on direction (light pieces
+                    move up the board, dark pieces move down), can move two
+                    squares only on their first move, and capture diagonally
+                    instead of forward, all special cases none of the other
+                    pieces need.</p>
+                <pre><code class="language-python">if not self.moved and not self.blocked and not self.dblocked:
+    self.movable.append((self.x,self.y-1))
+    self.movable.append((self.x,self.y-2))
+elif not self.blocked:
+    self.movable.append((self.x,self.y-1))</code></pre>
+                <p><code>self.moved</code> tracks whether this specific pawn has
+                    ever moved before, once it has, the two square opening move
+                    is disabled.</p>
+
+                <h2>The sliding animation</h2>
+                <p>Pieces don't teleport to their destination, they glide there
+                    over a fixed number of frames.</p>
+                <pre><code class="language-python">if self.moving and self.count != speed:
+    self.xcoor += self.toxcoorval
+    self.ycoor += self.toycoorval
+    self.count += 1</code></pre>
+                <p>When a piece moves, the code calculates a fixed per frame
+                    pixel step (<code>toxcoorval</code>/<code>toycoorval</code>)
+                    and adds it to the piece's position every frame for
+                    <code>speed</code> (10) frames straight, at that point it's
+                    snapped exactly onto its true destination.</p>
+                <img src="chessgameplay.gif"
+                    alt="A short sequence of chess moves, including a capture and the piece slide animation">
+
+                <h2>What's not here</h2>
+                <p>This is piece movement, not a full legal chess engine.
+                    There's no turn enforcement (either side can move any piece
+                    at any time), no check or checkmate detection, no castling,
+                    en passant, or pawn promotion. Every piece correctly
+                    computes where it's allowed to move on its own, but nothing
+                    stops you from walking your King into check.</p>
+                <div class="links">
+                    <a
+                        href="https://github.com/jeromepalayoor/pygame-projects/tree/main/chess"
+                        class="btn-primary">View on GitHub ➔</a>
+                </div>
+            </article>
+            <section class="contact" id="contact">
+                <h2>Contact Me</h2>
+                <div class="links">
+                    <a href="mailto:contact@jeromepalayoor.com"
+                        class="btn-secondary">Email</a>
+                    <a href="https://github.com/jeromepalayoor"
+                        class="btn-secondary">Github</a>
+                    <a href="https://www.linkedin.com/in/jeromepalayoor/"
+                        class="btn-secondary">LinkedIn</a>
+                    <a href="https://www.instagram.com/jeromepalayoor/"
+                        class="btn-secondary">Instagram</a>
+                </div>
+            </section>
+        </main>
+        <footer>
+            <p>© 2026 Jerome Palayoor</p>
+            <div class="footer-links">
+                <a href="https://jeromepalayoor.com">Portfolio</a>
+                <a href="https://jpalayoor.com">All Projects</a>
+            </div>
+        </footer>
+        <div class="lightbox" id="lightbox">
+            <img src="" alt="" id="lightbox-img">
+        </div>
+        <script>
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+
+            document.querySelectorAll('img').forEach((img) => {
+                img.style.cursor = 'pointer';
+                img.addEventListener('click', () => {
+                    lightboxImg.src = img.src;
+                    lightboxImg.alt = img.alt;
+                    lightbox.classList.add('active');
+                });
+            });
+
+            lightbox.addEventListener('click', (event) => {
+            if (event.target === lightbox) {
+                lightbox.classList.remove('active');
+            }
+            });
+        </script>
+    </body>
+</html>
