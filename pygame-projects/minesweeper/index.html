@@ -1,0 +1,174 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Minesweeper - Jerome Palayoor</title>
+        <link rel="stylesheet" href="/styles.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    </head>
+    <body>
+        <header>
+            <h1>Jerome Palayoor</h1>
+            <a href="#contact" class="btn-primary">Contact</a>
+        </header>
+        <main>
+            <section class="project-hero">
+                <img src="minesweeper-midgame.png"
+                    alt="Minesweeper mid game">
+                <div class="herotext">
+                    <h2 class="project-title">Minesweeper</h2>
+                    <p class="intro">A Minesweeper game with hand drawn tiles
+                        and flags with pygame shapes.</p>
+                    <div class="links">
+                        <a
+                            href="https://github.com/jeromepalayoor/pygame-projects/tree/main/minesweeper"
+                            class="btn-primary">View on GitHub ➔</a>
+                    </div>
+                </div>
+            </section>
+            <article class="project-body">
+                <h2>Counting neighboring bombs</h2>
+                <p>Bombs get placed randomly first, then every cell counts how
+                    many bombs are sitting in its 8 surrounding cells.</p>
+                <pre><code class="language-python">def setup(self,grid):
+    if self.n == -1:
+        return
+    for i in range(-1,2):
+        for j in range(-1,2):
+            if (i,j) != (0,0) and x+i >= 0 and x+i < width//size and y+j >= 0 and y+j < height//size:
+                try:
+                    if grid[self.x+i][self.y+j].n == -1:
+                        self.n += 1
+                except:
+                    pass</code></pre>
+                <p><code>self.n</code> doubles as two different things depending
+                    on its value, <code>-1</code> means the cell itself is a
+                    bomb, any positive number is how many bombs are touching it.
+                    The <code>i, j</code> loop just checks all 8 neighboring
+                    offsets, skipping <code>(0,0)</code>, which would be the
+                    cell itself.</p>
+
+                <h2>Flood filling empty space</h2>
+                <p>Clicking a cell with zero neighboring bombs cascades outward,
+                    automatically revealing its whole neighborhood, and
+                    recursively continuing wherever that neighborhood also
+                    touches zero bombs.</p>
+                <pre><code class="language-python">def reveal(self,grid):
+    self.revealed = True
+    if self.n == -1:
+        return False
+
+    if self.n == 0:
+        for i in range(-1,2):
+            for j in range(-1,2):
+                if (i,j) != (0,0) and self.x+i >= 0 and self.x+i < width//size and self.y+j >= 0 and self.y+j < height//size:
+                    try:
+                        if grid[self.x+i][self.y+j].n != -1 and not grid[self.x+i][self.y+j].revealed and not grid[self.x+i][self.y+j].flag:
+                            grid[self.x+i][self.y+j].reveal(grid)
+                    except:
+                        pass
+    return True</code></pre>
+                <p>Each neighboring cell only gets revealed if it isn't already
+                    revealed and isn't flagged, that second check matters,
+                    without it the flood fill would happily reveal cells you've
+                    deliberately marked as bombs.</p>
+                <img src="minesweeper-midgame.png"
+                    alt="A Minesweeper board partway through, showing flood-filled empty areas, numbered cells, and several flags placed">
+
+                <h2>Flags and bombs, drawn by hand</h2>
+                <p>There's no sprite sheet here, every tile is drawn directly
+                    with pygame's own shape primitives. A flag is just two lines
+                    and a small rectangle, a bomb is two overlapping
+                    circles.</p>
+                <pre><code class="language-python">pygame.draw.rect(win,(255,255,150),(self.x*size,self.y*size,size,size))
+pygame.draw.line(win,(0,0,0), (self.x*size+size/5,self.y*size+size/5),(self.x*size+size/5,self.y*size+size/5*4),3)
+pygame.draw.rect(win,(255,0,0),(self.x*size+size/5+2,self.y*size+size/5,size/2,size/3))</code></pre>
+
+                <h2>Winning, losing, and getting flags right</h2>
+                <p>Clicking a bomb sets the game to a dead state and reveals the
+                    entire board at once, this is where flag accuracy actually
+                    gets shown. A flag sitting on a real bomb stays drawn as a
+                    flag, but a flag on a cell that turns out safe gets crossed
+                    out with an X instead.</p>
+                <pre><code class="language-python">elif self.n > 0:
+    pygame.draw.rect(win,(150,255,150),(self.x*size,self.y*size,size,size))
+    if self.flag:
+        pygame.draw.line(win,(0,0,0),(self.x*size+size/5,self.y*size+size/5),(self.x*size+size/5*4,self.y*size+size/5*4),5)
+        pygame.draw.line(win,(0,0,0),(self.x*size+size/5,self.y*size+size/5*4),(self.x*size+size/5*4,self.y*size+size/5),5)
+    else:
+        num = font.render(str(self.n), True, (70, 70, 70))
+        win.blit(num, (self.x*size+size/3,self.y*size+size/4))</code></pre>
+                <p>This branch only runs for non-bomb cells (<code>self.n &gt;
+                        0</code>), so a flag showing up here means you flagged a
+                    cell that wasn't actually dangerous, hence the X instead of
+                    a number.</p>
+                <img src="minesweeper-gameover.png"
+                    alt="A finished Minesweeper board after hitting a bomb, showing revealed bombs, correctly flagged bombs, and incorrect flags crossed out with an X">
+                <p>Winning works a little differently than you might expect,
+                    rather than checking specifically that every safe cell is
+                    revealed and every bomb is flagged, the game just tracks a
+                    running count of revealed-or-flagged cells, and considers
+                    itself won once that count reaches the total number of cells
+                    on the board.</p>
+                <div class="links">
+                    <a
+                        href="https://github.com/jeromepalayoor/pygame-projects/tree/main/minesweeper"
+                        class="btn-primary">View on GitHub ➔</a>
+                </div>
+            </article>
+            <section class="contact" id="contact">
+                <h2>Contact Me</h2>
+                <div class="links">
+                    <a href="mailto:contact@jeromepalayoor.com"
+                        class="btn-secondary">Email</a>
+                    <a href="https://github.com/jeromepalayoor"
+                        class="btn-secondary">Github</a>
+                    <a href="https://www.linkedin.com/in/jeromepalayoor/"
+                        class="btn-secondary">LinkedIn</a>
+                    <a href="https://www.instagram.com/jeromepalayoor/"
+                        class="btn-secondary">Instagram</a>
+                </div>
+            </section>
+        </main>
+        <footer>
+            <p>© 2026 Jerome Palayoor</p>
+            <div class="footer-links">
+                <a href="https://jeromepalayoor.com">Portfolio</a>
+                <a href="https://jpalayoor.com">All Projects</a>
+            </div>
+        </footer>
+        <div class="lightbox" id="lightbox">
+            <img src="" alt="" id="lightbox-img">
+        </div>
+        <script>
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+
+            document.querySelectorAll('img').forEach((img) => {
+                img.style.cursor = 'pointer';
+                img.addEventListener('click', () => {
+                    lightboxImg.src = img.src;
+                    lightboxImg.alt = img.alt;
+                    lightbox.classList.add('active');
+                });
+            });
+
+            lightbox.addEventListener('click', (event) => {
+            if (event.target === lightbox) {
+                lightbox.classList.remove('active');
+            }
+            });
+        </script>
+    </body>
+</html>
