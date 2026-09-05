@@ -1,0 +1,168 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>Maze Gen - Jerome Palayoor</title>
+        <link rel="stylesheet" href="/styles.css">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link
+            href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,100..900;1,9..144,100..900&family=Google+Sans:ital,opsz,wght@0,17..18,400..700;1,17..18,400..700&display=swap"
+            rel="stylesheet">
+        <link rel="stylesheet"
+            href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+        <script
+            src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-python.min.js"></script>
+    </head>
+    <body>
+        <header>
+            <h1>Jerome Palayoor</h1>
+            <a href="#contact" class="btn-primary">Contact</a>
+        </header>
+        <main>
+            <section class="project-hero">
+                <img src="mazegen.gif"
+                    alt="A maze being generated and solved in real time">
+                <div class="herotext">
+                    <h2 class="project-title">Maze Gen</h2>
+                    <p class="intro">Generates a maze with recursive
+                        backtracking, solves it with a search algorithm, and
+                        automatically saves both images</p>
+                    <div class="links">
+                        <a
+                            href="https://github.com/jeromepalayoor/pygame-projects/tree/main/maze-gen"
+                            class="btn-primary">View on GitHub ➔</a>
+                    </div>
+                </div>
+            </section>
+            <article class="project-body">
+                <h2>Carving the maze</h2>
+                <p>Every cell starts fully walled in on all 4 sides. Generation
+                    works by picking a random unvisited neighbor, knocking down
+                    the wall between it and the current cell, and moving there,
+                    backtracking through a stack whenever a cell has no
+                    unvisited neighbors left.</p>
+                <pre><code class="language-python">def visit(self,cells):
+    self.visited = True
+    neighbours = []
+    if self.y != 0:
+        if not cells[self.y-1][self.x].visited:
+            neighbours.append(cells[self.y-1][self.x])
+    if self.y != len(cells)-1:
+        if not cells[self.y+1][self.x].visited:
+            neighbours.append(cells[self.y+1][self.x])
+    if self.x != 0:
+        if not cells[self.y][self.x-1].visited:
+            neighbours.append(cells[self.y][self.x-1])
+    if self.x != len(cells[0])-1:
+        if not cells[self.y][self.x+1].visited:
+            neighbours.append(cells[self.y][self.x+1])
+
+    if len(neighbours) > 0:
+        cell = random.choice(neighbours)
+        return cell.x, cell.y
+    else:
+        return None</code></pre>
+                <img src="maze-generating.png"
+                    alt="A maze partway through generation, showing carved passages alongside unvisited black space">
+                <p>Picking randomly among unvisited neighbors, and backtracking
+                    whenever there are none left, is what makes this
+                    "recursive backtracking" as a maze algorithm, it guarantees
+                    the result is a perfect maze, exactly one possible path
+                    between any two cells, no loops, nothing unreachable.</p>
+                <img src="maze-generated.png"
+                    alt="A fully generated maze, ready to be solved">
+
+                <h2>Solving it</h2>
+                <p>Once generation finishes, the maze immediately gets solved
+                    using an open/closed set search, each cell tracks a cost
+                    based on distance from the start and estimated distance to
+                    the end, and the algorithm always expands whichever open
+                    cell looks most promising.</p>
+                <pre><code class="language-python">def calculate(self):
+    self.fromstart = math.sqrt(self.x**2 + self.y**2)
+    self.fromend = math.sqrt((self.x-end[0])**2 + (self.y-end[1])**2)
+    self.total = self.fromstart + self.fromend</code></pre>
+                <p><code>fromstart</code> is the cost already spent getting
+                    here, <code>fromend</code> is a straight-line estimate of
+                    what's left, added together they're A*'s classic <code>f = g
+                        + h</code>. At every step, the algorithm expands
+                    whichever open cell has the lowest combined score, balancing
+                    "closest to where I've been" against
+                    "closest to where I'm going", rather than blindly exploring
+                    in one direction.</p>
+                <img src="maze-solving.png"
+                    alt="A maze mid-solve, showing green closed cells and red open frontier cells spreading through the passages">
+
+                <h2>Drawing the solution</h2>
+                <p>Once the end cell is reached, the path gets reconstructed
+                    backward by following each cell's parent pointer all the way
+                    back to the start, then drawn as a thick red line.</p>
+                <img src="maze-solved.png"
+                    alt="A fully solved maze with the solution path drawn as a thick red line from start to end">
+
+                <h2>Saving maze images</h2>
+                <p>The fun part of this project isn't the maze algorithm, it's
+                    what happens after it. The moment a maze finishes
+                    generating, and again the moment it's solved, the program
+                    saves the game surface straight to a local
+                    <code>mazes</code> folder.</p>
+                <pre><code class="language-python">pygame.image.save(win, os.getcwd() + "\\mazes\\maze " + str(count) + ".png")</code></pre>
+                <p>After capturing the solved version, it generates a brand new
+                    one, repeating the whole procedure multiple times.</p>
+                <img src="mazegen.gif"
+                    alt="A gif of a maze being generated and solved">
+                <div class="links">
+                    <a
+                        href="https://github.com/jeromepalayoor/pygame-projects/tree/main/maze-gen"
+                        class="btn-primary">View on GitHub ➔</a>
+                </div>
+            </article>
+            <section class="contact" id="contact">
+                <h2>Contact Me</h2>
+                <div class="links">
+                    <a href="mailto:contact@jeromepalayoor.com"
+                        class="btn-secondary">Email</a>
+                    <a href="https://github.com/jeromepalayoor"
+                        class="btn-secondary">Github</a>
+                    <a href="https://www.linkedin.com/in/jeromepalayoor/"
+                        class="btn-secondary">LinkedIn</a>
+                    <a href="https://www.instagram.com/jeromepalayoor/"
+                        class="btn-secondary">Instagram</a>
+                </div>
+            </section>
+        </main>
+        <footer>
+            <p>© 2026 Jerome Palayoor</p>
+            <div class="footer-links">
+                <a href="https://jeromepalayoor.com">Portfolio</a>
+                <a href="https://jpalayoor.com">All Projects</a>
+            </div>
+        </footer>
+        <div class="lightbox" id="lightbox">
+            <img src="" alt="" id="lightbox-img">
+        </div>
+        <script>
+            const lightbox = document.getElementById('lightbox');
+            const lightboxImg = document.getElementById('lightbox-img');
+
+            document.querySelectorAll('img').forEach((img) => {
+                img.style.cursor = 'pointer';
+                img.addEventListener('click', () => {
+                    lightboxImg.src = img.src;
+                    lightboxImg.alt = img.alt;
+                    lightbox.classList.add('active');
+                });
+            });
+
+            lightbox.addEventListener('click', (event) => {
+            if (event.target === lightbox) {
+                lightbox.classList.remove('active');
+            }
+            });
+        </script>
+    </body>
+</html>
